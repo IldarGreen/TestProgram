@@ -1,12 +1,12 @@
 {
   "criterias": [
     {"lastName": "Иванов"},
+    {"productName": "Сыр", "minTimes": 2},
+    {"productName": "Хлеб", "minTimes": 3},
     {"lastName": "Петров"},
-    {"productName": "Сыр", "minTimes": 5},
-    {"productName": "Хлеб", "minTimes": 10},
-    {"minExpenses": 112, "maxExpenses": 4000},
-    {"minExpenses": 200, "maxExpenses": 1000},
-    {"badCustomers": 1},
-    {"badCustomers": 5}
-    ]
+    {"minExpenses": 50, "maxExpenses": 500},
+    {"minExpenses": 500, "maxExpenses": 1000},
+    {"badCustomers": 2},
+    {"badCustomers": 4}
+  ]
 }

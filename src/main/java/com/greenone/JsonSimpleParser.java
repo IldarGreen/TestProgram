@@ -1,62 +1,63 @@
 package com.greenone;
 
-import com.greenone.model.Criteria;
-import com.greenone.model.Root;
+import com.greenone.model.User;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class JsonSimpleParser {
 
-	public Root parse(String fileName) {
-		Root root = new Root();
+	public void parse(String fileName) {
 		JSONParser parser = new JSONParser();
+
+		List<User> userList = new ArrayList<>();
+		Map<JSONObject, List<User>> mapOfJsoAndUserList = new LinkedHashMap<>();
 
 		try(FileReader reader = new FileReader(fileName)) {
 
 			JSONObject rootJsonObject = (JSONObject) parser.parse(reader);
-			JSONArray crecriteriasJsonArray = (JSONArray) rootJsonObject.get("criterias");
+			JSONArray criteriasJsonArray = (JSONArray) rootJsonObject.get("criterias");
+			JSONObject criteriasJsonObject = null;
 
-			List<String> lastName = new ArrayList<>();
-			List<Integer> badCustomers = new ArrayList<>();
-			Map<String , Integer> productNameMinTimes = new HashMap();
-			Map<Integer , Integer> minExpensesMaxExpenses = new HashMap();
+			for(Object it:  criteriasJsonArray) {
+				criteriasJsonObject = (JSONObject) it;
 
-			for(Object it:  crecriteriasJsonArray) {
-				JSONObject crecriteriasJsonObject = (JSONObject) it;
-
-				if (crecriteriasJsonObject.get("lastName") != null) {
-					lastName.add((String) crecriteriasJsonObject.get("lastName"));
+				if (criteriasJsonObject.get("lastName") != null) {
+					DBConnection dbconnection = new DBConnection();
+					userList  = dbconnection.dbRequestlastName((String) criteriasJsonObject.get("lastName"));
+					mapOfJsoAndUserList.put(criteriasJsonObject, userList);
 				}
-				if (crecriteriasJsonObject.get("badCustomers") != null) {
-					badCustomers.add(Math.toIntExact((Long) crecriteriasJsonObject.get("badCustomers")));
+				if (criteriasJsonObject.get("productName") != null) {
+					DBConnection dbconnection = new DBConnection();
+					userList = dbconnection.dbRequestProductName((String) criteriasJsonObject.get("productName"),
+							Math.toIntExact((Long) criteriasJsonObject.get("minTimes")));
+					mapOfJsoAndUserList.put(criteriasJsonObject, userList);
 				}
-				if (crecriteriasJsonObject.get("productName") != null) {
-					productNameMinTimes.put((String) crecriteriasJsonObject.get("productName"),
-							Math.toIntExact((Long) crecriteriasJsonObject.get("minTimes")));
+				if (criteriasJsonObject.get("minExpenses") != null) {//
+					DBConnection dbconnection = new DBConnection();
+					userList = dbconnection.dbRequestMinMaxExpenses(
+							Math.toIntExact((Long) criteriasJsonObject.get("minExpenses")),
+							Math.toIntExact((Long) criteriasJsonObject.get("maxExpenses")));
+					mapOfJsoAndUserList.put(criteriasJsonObject, userList);
 				}
-				if (crecriteriasJsonObject.get("minExpenses") != null) {
-					minExpensesMaxExpenses.put(Math.toIntExact((Long) crecriteriasJsonObject.get("minExpenses")),
-							Math.toIntExact((Long) crecriteriasJsonObject.get("maxExpenses")));
+				if (criteriasJsonObject.get("badCustomers") != null) {
+					DBConnection dbconnection = new DBConnection();
+					userList = dbconnection.dbRequestBadCustomers(
+							Math.toIntExact((Long) criteriasJsonObject.get("badCustomers")));
+					mapOfJsoAndUserList.put(criteriasJsonObject, userList);
 				}
-
-				Criteria criteria = new Criteria(lastName, productNameMinTimes, minExpensesMaxExpenses, badCustomers);
-
-				root.setCriteria(criteria);
-
 			}
 
-			return root;
-
+			JsonSimpleWriter jsw = new JsonSimpleWriter();
+			jsw.writeJsonSimpleDemo(mapOfJsoAndUserList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
 	}
 }
