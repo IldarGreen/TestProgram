@@ -30,7 +30,7 @@ public class JsonSimpleParser {
 
 				if (criteriasJsonObject.get("lastName") != null) {
 					DBConnection dbconnection = new DBConnection();
-					userList  = dbconnection.dbRequestlastName((String) criteriasJsonObject.get("lastName"));
+					userList  = dbconnection.dbRequestLastName((String) criteriasJsonObject.get("lastName"));
 					mapOfJsoAndUserList.put(criteriasJsonObject, userList);
 				}
 				if (criteriasJsonObject.get("productName") != null) {

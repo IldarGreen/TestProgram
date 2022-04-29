@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.*;
 
 public class DBConnection {
-	public List<User> dbRequestlastName(String str1) {
+	public List<User> dbRequestLastName(String str1) {
 		List<User> userList = new ArrayList<>();
 
 		try {
@@ -18,7 +18,7 @@ public class DBConnection {
 			Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/shop_db",
 					"postgres", "postgres");
 
-			String query = "select * from consumers where last_name = ?";
+			String query = "SELECT * FROM consumers WHERE last_name = ?";
 			PreparedStatement stmt = conn.prepareStatement(query);
 			stmt.setString(1, str1);
 			ResultSet rs = stmt.executeQuery();
