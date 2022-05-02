@@ -1,25 +1,37 @@
 package com.greenone;
 
 import com.greenone.model.User;
+import com.greenone.model.UserProducts;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JsonSimpleParser {
+	public void parseType(String typeOfRequest, String inputFileName, String outputFileName) {
+		Map<JSONObject, List<User>> mapOfJsoAndUserList = new LinkedHashMap<>();
+		Map<JSONObject, Map<Integer, UserProducts>> mapOfJsoAndUserMap = new LinkedHashMap<>();
+		JsonSimpleWriter jsw = new JsonSimpleWriter();
 
-	public void parse(String fileName) {
+		if (typeOfRequest == "search") {
+			mapOfJsoAndUserList = parseForSearch(inputFileName);
+			jsw.writeJsonSimpleSearch(mapOfJsoAndUserList, outputFileName);
+		}
+		if (typeOfRequest == "stat") {
+			mapOfJsoAndUserMap = parseForStat(inputFileName);
+			jsw.writeJsonSimpleStat(mapOfJsoAndUserMap, outputFileName);
+		}
+	}
+
+	public Map<JSONObject, List<User>> parseForSearch(String inputFileName) {
 		JSONParser parser = new JSONParser();
 
 		List<User> userList = new ArrayList<>();
 		Map<JSONObject, List<User>> mapOfJsoAndUserList = new LinkedHashMap<>();
 
-		try(FileReader reader = new FileReader(fileName)) {
+		try(FileReader reader = new FileReader(inputFileName)) {
 
 			JSONObject rootJsonObject = (JSONObject) parser.parse(reader);
 			JSONArray criteriasJsonArray = (JSONArray) rootJsonObject.get("criterias");
@@ -54,10 +66,29 @@ public class JsonSimpleParser {
 				}
 			}
 
-			JsonSimpleWriter jsw = new JsonSimpleWriter();
-			jsw.writeJsonSimpleDemo(mapOfJsoAndUserList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return mapOfJsoAndUserList;
+	}
+
+	public Map<JSONObject, Map<Integer, UserProducts>> parseForStat(String inputFileName) {
+		JSONParser parser = new JSONParser();
+
+		Map<Integer, UserProducts> userProductsMap = new LinkedHashMap<>();
+		Map<JSONObject, Map<Integer, UserProducts>> mapOfJsoAndUserMap = new LinkedHashMap<>();
+
+		try(FileReader reader = new FileReader(inputFileName)) {
+			JSONObject rootJsonObject = (JSONObject) parser.parse(reader);
+
+			DBConnection dbconnection = new DBConnection();
+			userProductsMap  = dbconnection.dbRequestDate((String) rootJsonObject.get("startDate"),
+					(String) rootJsonObject.get("endDate"));
+			mapOfJsoAndUserMap.put(rootJsonObject, userProductsMap);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mapOfJsoAndUserMap;
 	}
 }

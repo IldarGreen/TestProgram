@@ -1,19 +1,26 @@
 package com.greenone;
 
+import com.greenone.model.Purchase;
 import com.greenone.model.User;
+import com.greenone.model.UserProducts;
 
 import java.sql.*;
+import java.sql.Date;
 import java.util.*;
 
 public class DBConnection {
-	public List<User> dbRequestLastName(String str1) {
-		List<User> userList = new ArrayList<>();
-
+	private void getDriverPrepare() {
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public List<User> dbRequestLastName(String str1) {
+		List<User> userList = new ArrayList<>();
+		getDriverPrepare();
+
 		try {
 			Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/shop_db",
 					"postgres", "postgres");
@@ -39,12 +46,8 @@ public class DBConnection {
 
 	public List<User> dbRequestProductName(String productName, Integer minTimes) {
 		List<User> userList = new ArrayList<>();
+		getDriverPrepare();
 
-		try {
-			Class.forName("org.postgresql.Driver");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
 		try {
 			Connection conn = DriverManager.getConnection(
 					"jdbc:postgresql://localhost:5432/shop_db", "postgres", "postgres");
@@ -77,12 +80,8 @@ public class DBConnection {
 
 	public List<User> dbRequestMinMaxExpenses(Integer minExpenses, Integer maxExpenses) {
 		List<User> userList = new ArrayList<>();
+		getDriverPrepare();
 
-		try {
-			Class.forName("org.postgresql.Driver");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
 		try {
 			Connection conn = DriverManager.getConnection(
 					"jdbc:postgresql://localhost:5432/shop_db", "postgres", "postgres");
@@ -115,12 +114,8 @@ public class DBConnection {
 
 	public List<User> dbRequestBadCustomers(Integer badCustomers) {
 		List<User> userList = new ArrayList<>();
+		getDriverPrepare();
 
-		try {
-			Class.forName("org.postgresql.Driver");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
 		try {
 			Connection conn = DriverManager.getConnection(
 					"jdbc:postgresql://localhost:5432/shop_db", "postgres", "postgres");
@@ -148,5 +143,75 @@ public class DBConnection {
 			e.printStackTrace();
 		}
 		return userList;
+	}
+
+	public Map<Integer, UserProducts> dbRequestDate(String startDate, String endDate) {
+		Map<Integer, UserProducts> userProductsMap = new LinkedHashMap<>();
+		getDriverPrepare();
+
+		try {
+			Connection conn = DriverManager.getConnection(
+					"jdbc:postgresql://localhost:5432/shop_db", "postgres", "postgres");
+
+			String query = "SELECT COUNT(products.product_id) as num_of_product, " +
+					"consumers.consumer_id, consumers.first_name, consumers.last_name, " +
+					"products.product_name, SUM(products.price) as products_sum " +
+					"FROM purchases " +
+					"INNER JOIN products ON products.product_id = purchases.product_id " +
+					"INNER JOIN consumers ON consumers.consumer_id = purchases.consumer_id " +
+					"WHERE date_part('dow', purchases.date) in (1, 2, 3, 4, 5) " +
+					"AND purchases.date BETWEEN ? AND ? " +
+					"GROUP BY consumers.consumer_id, products.product_id " +
+					"ORDER BY consumers.consumer_id, products_sum DESC";
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setDate(1, Date.valueOf(startDate));
+			stmt.setDate(2, Date.valueOf(endDate));
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				int key =  rs.getInt("consumer_id");
+
+				if (userProductsMap.containsKey(key)) {
+					Purchase purchase = new Purchase();
+					purchase.setPurchase_name(rs.getString("product_name"));
+					purchase.setProducts_sum(rs.getInt("products_sum"));
+
+					UserProducts userProducts = userProductsMap.get(key);
+					List<Purchase> purchases = userProducts.getPurchases();
+					purchases.add(purchase);
+					userProducts.setPurchases(purchases);
+
+					userProducts.setTotal_expenses(userProducts.getTotal_expenses() +
+							rs.getInt("products_sum"));
+
+					userProductsMap.put(key, userProducts);
+				} else {
+					UserProducts userProducts = new UserProducts();
+					userProducts.setConsumer_id(key);
+					userProducts.setUser_neme(rs.getString("last_name") +
+							" " + rs.getString("first_name"));
+					userProducts.setTotal_expenses(rs.getInt("products_sum"));
+
+					Purchase purchase = new Purchase();
+					purchase.setPurchase_name(rs.getString("product_name"));
+					purchase.setProducts_sum(rs.getInt("products_sum"));
+
+					List<Purchase> purchases = new ArrayList<>();
+					purchases.add(purchase);
+					userProducts.setPurchases(purchases);
+
+					userProductsMap.put(key, userProducts);
+				}
+			}
+			stmt.close();
+
+			for (Map.Entry entry: userProductsMap.entrySet()) {
+				System.out.println(entry);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return userProductsMap;
 	}
 }
