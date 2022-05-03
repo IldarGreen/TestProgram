@@ -8,11 +8,12 @@ public class Main {
 //		}
 
 
-//		String typeOfRequest = "search"; // or "stat"
-//		String inputFileName = "input.json"
+		String typeOfRequest = "search";
+		String inputFileName = "input.json";
 
-		String typeOfRequest = "stat";
-		String inputFileName = "inputDate.json";
+//		String typeOfRequest = "stat";
+//		String inputFileName = "inputDate.json";
+
 		String outputFileName = "output.json";
 
 		JsonSimpleParser parser = new JsonSimpleParser();

@@ -1,7 +1,6 @@
 package com.greenone;
 
 import com.greenone.model.User;
-import com.greenone.model.UserProducts;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -12,7 +11,7 @@ import java.util.*;
 public class JsonSimpleParser {
 	public void parseType(String typeOfRequest, String inputFileName, String outputFileName) {
 		Map<JSONObject, List<User>> mapOfJsoAndUserList = new LinkedHashMap<>();
-		Map<JSONObject, Map<Integer, UserProducts>> mapOfJsoAndUserMap = new LinkedHashMap<>();
+		Object[] arrayOfAll = new Object[4];
 		JsonSimpleWriter jsw = new JsonSimpleWriter();
 
 		if (typeOfRequest == "search") {
@@ -20,8 +19,8 @@ public class JsonSimpleParser {
 			jsw.writeJsonSimpleSearch(mapOfJsoAndUserList, outputFileName);
 		}
 		if (typeOfRequest == "stat") {
-			mapOfJsoAndUserMap = parseForStat(inputFileName);
-			jsw.writeJsonSimpleStat(mapOfJsoAndUserMap, outputFileName);
+			arrayOfAll = parseForStat(inputFileName);
+			jsw.writeJsonSimpleStat(arrayOfAll, outputFileName);
 		}
 	}
 
@@ -72,23 +71,21 @@ public class JsonSimpleParser {
 		return mapOfJsoAndUserList;
 	}
 
-	public Map<JSONObject, Map<Integer, UserProducts>> parseForStat(String inputFileName) {
+	public Object[] parseForStat(String inputFileName) {
 		JSONParser parser = new JSONParser();
 
-		Map<Integer, UserProducts> userProductsMap = new LinkedHashMap<>();
-		Map<JSONObject, Map<Integer, UserProducts>> mapOfJsoAndUserMap = new LinkedHashMap<>();
+		Object[] arrayOfAll = new Object[4];
 
 		try(FileReader reader = new FileReader(inputFileName)) {
 			JSONObject rootJsonObject = (JSONObject) parser.parse(reader);
 
 			DBConnection dbconnection = new DBConnection();
-			userProductsMap  = dbconnection.dbRequestDate((String) rootJsonObject.get("startDate"),
+			arrayOfAll = dbconnection.dbRequestDate((String) rootJsonObject.get("startDate"),
 					(String) rootJsonObject.get("endDate"));
-			mapOfJsoAndUserMap.put(rootJsonObject, userProductsMap);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return mapOfJsoAndUserMap;
+		return arrayOfAll;
 	}
 }

@@ -145,13 +145,29 @@ public class DBConnection {
 		return userList;
 	}
 
-	public Map<Integer, UserProducts> dbRequestDate(String startDate, String endDate) {
+	public Object[] dbRequestDate(String startDate, String endDate) {
 		Map<Integer, UserProducts> userProductsMap = new LinkedHashMap<>();
+		Object[] arrayOfAll = new Object[4];
+		int total_days = 0;
+		int total_expenses = 0;
+		float avg_expenses = 0;
+
 		getDriverPrepare();
 
 		try {
 			Connection conn = DriverManager.getConnection(
 					"jdbc:postgresql://localhost:5432/shop_db", "postgres", "postgres");
+
+			String queryNumOfDay = "SELECT COUNT(purchases.date) as num_of_day " +
+					"FROM purchases " +
+					"WHERE date_part('dow', purchases.date) in (1, 2, 3, 4, 5)" +
+					"AND purchases.date BETWEEN ? AND ?";
+			PreparedStatement stmtNumOfDay = conn.prepareStatement(queryNumOfDay);
+			stmtNumOfDay.setDate(1, Date.valueOf(startDate));
+			stmtNumOfDay.setDate(2, Date.valueOf(endDate));
+			ResultSet rsNumOfDay = stmtNumOfDay.executeQuery();
+			rsNumOfDay.next();
+			total_days =  rsNumOfDay.getInt("num_of_day");
 
 			String query = "SELECT COUNT(products.product_id) as num_of_product, " +
 					"consumers.consumer_id, consumers.first_name, consumers.last_name, " +
@@ -187,8 +203,7 @@ public class DBConnection {
 					userProductsMap.put(key, userProducts);
 				} else {
 					UserProducts userProducts = new UserProducts();
-					userProducts.setConsumer_id(key);
-					userProducts.setUser_neme(rs.getString("last_name") +
+					userProducts.setUser_name(rs.getString("last_name") +
 							" " + rs.getString("first_name"));
 					userProducts.setTotal_expenses(rs.getInt("products_sum"));
 
@@ -202,16 +217,19 @@ public class DBConnection {
 
 					userProductsMap.put(key, userProducts);
 				}
+				total_expenses += rs.getInt("products_sum");
 			}
 			stmt.close();
-
-			for (Map.Entry entry: userProductsMap.entrySet()) {
-				System.out.println(entry);
-			}
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return userProductsMap;
+		avg_expenses = (float) total_expenses / userProductsMap.size();
+
+		arrayOfAll[0] = total_days;
+		arrayOfAll[1] = total_expenses;
+		arrayOfAll[2] = avg_expenses;
+		arrayOfAll[3] = userProductsMap;
+
+		return arrayOfAll;
 	}
 }
