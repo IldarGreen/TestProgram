@@ -4,4 +4,4 @@ java -jar TestProgram-1.0.jar search input.json output.json
 
 or
 
-java -jar TestProgram-1.0.jar stat inputData.json output.js
+java -jar TestProgram-1.0.jar stat inputData.json output.json
