@@ -5,7 +5,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class JsonSimpleParser {
@@ -14,11 +16,11 @@ public class JsonSimpleParser {
 		Object[] arrayOfAll = new Object[4];
 		JsonSimpleWriter jsw = new JsonSimpleWriter();
 
-		if (typeOfRequest == "search") {
+		if (typeOfRequest.equals("search")) {
 			mapOfJsoAndUserList = parseForSearch(inputFileName);
 			jsw.writeJsonSimpleSearch(mapOfJsoAndUserList, outputFileName);
 		}
-		if (typeOfRequest == "stat") {
+		if (typeOfRequest.equals("stat")) {
 			arrayOfAll = parseForStat(inputFileName);
 			jsw.writeJsonSimpleStat(arrayOfAll, outputFileName);
 		}
@@ -30,9 +32,10 @@ public class JsonSimpleParser {
 		List<User> userList = new ArrayList<>();
 		Map<JSONObject, List<User>> mapOfJsoAndUserList = new LinkedHashMap<>();
 
-		try(FileReader reader = new FileReader(inputFileName)) {
+		try(InputStream inputStream = new FileInputStream(inputFileName)) {
+			JSONParser parser1 = new JSONParser();
+			JSONObject rootJsonObject = (JSONObject) parser1.parse(new InputStreamReader(inputStream, "UTF-8"));
 
-			JSONObject rootJsonObject = (JSONObject) parser.parse(reader);
 			JSONArray criteriasJsonArray = (JSONArray) rootJsonObject.get("criterias");
 			JSONObject criteriasJsonObject = null;
 
@@ -76,8 +79,9 @@ public class JsonSimpleParser {
 
 		Object[] arrayOfAll = new Object[4];
 
-		try(FileReader reader = new FileReader(inputFileName)) {
-			JSONObject rootJsonObject = (JSONObject) parser.parse(reader);
+		try(InputStream inputStream = new FileInputStream(inputFileName)) {
+			JSONParser parser1 = new JSONParser();
+			JSONObject rootJsonObject = (JSONObject) parser1.parse(new InputStreamReader(inputStream, "UTF-8"));
 
 			DBConnection dbconnection = new DBConnection();
 			arrayOfAll = dbconnection.dbRequestDate((String) rootJsonObject.get("startDate"),

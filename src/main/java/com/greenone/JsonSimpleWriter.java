@@ -28,9 +28,7 @@ public class JsonSimpleWriter {
 				jGenerator.writeFieldName("results");
 					jGenerator.writeStartArray();
 						for (Map.Entry<JSONObject, List<User>> x : mapOfJsoAndUserList.entrySet()) {
-							System.out.println(x.getKey() + "  " + x.getValue());
 							jGenerator.writeStartObject();
-
 							jGenerator.writeFieldName("criteria");
 								jGenerator.writeStartObject();
 										if (x.getKey().containsKey("lastName")) {
@@ -122,7 +120,7 @@ public class JsonSimpleWriter {
 										jGenerator.writeEndObject();
 									}
 								jGenerator.writeEndArray();
-								jGenerator.writeNumberField("totalDays", x.getValue().getTotal_expenses());
+								jGenerator.writeNumberField("totalExpenses", x.getValue().getTotal_expenses());
 							jGenerator.writeEndObject();
 						}
 					jGenerator.writeEndArray();
