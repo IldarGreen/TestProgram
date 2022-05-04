@@ -1,9 +1,6 @@
 package com.greenone;
 
-import java.util.logging.Logger;
-
 public class Main {
-	public static final Logger logger = Logger.getGlobal();
 
 	public static void main(String[] args) {
 		String typeOfRequest =  args[0];
